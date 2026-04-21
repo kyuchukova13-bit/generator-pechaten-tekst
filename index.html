@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Печатни Букви - Ограмотяване | Дочка Кючукова</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Andika&family=Comic+Neue:wght@400;700&family=Codystar&family=Raleway+Dots&family=Pangolin&family=Neucha&family=Balsamiq+Sans&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Локален шрифт, изисква файла princd.ttf в същата папка */
+        @font-face {
+            font-family: 'PrintDashed';
+            src: url('princd.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #27ae60;
+            --line-solid: #444444; 
+            --line-dashed: #aaaaaa; 
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 350px; background: white; height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1); padding: 25px;
+            box-sizing: border-box; overflow-y: auto; position: fixed;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /*--- Стилизиране на хедъра в панела за логото и автора ---*/
+        .sidebar-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .sidebar h2 { color: var(--primary-color); font-size: 1.1rem; margin: 0; text-transform: uppercase; }
+        
+        .creator-tag {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 3px;
+            font-style: italic;
+        }
+
+        .sidebar-logo {
+            max-width: 70px; 
+            max-height: 70px; 
+            object-fit: contain; 
+            border-radius: 8px; 
+            margin-left: 10px;
+        }
+
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 0.85rem; }
+        
+        textarea, input[type="text"], select {
+            width: 100%; padding: 10px; border: 1px solid #ccc;
+            border-radius: 6px; font-size: 14px; box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        textarea { resize: vertical; min-height: 150px; line-height: 1.4; }
+
+        .align-control {
+            background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 20px;
+        }
+        .align-control label { color: var(--primary-color); }
+        .align-control input[type="range"] { width: 100%; cursor: pointer; margin-bottom: 15px; }
+
+        .btn-print {
+            width: 100%; padding: 14px; color: white; border: none;
+            border-radius: 6px; font-weight: bold; cursor: pointer;
+            font-size: 16px; margin-top: auto;
+            background-color: var(--accent-color);
+            transition: background 0.2s;
+        }
+        .btn-print:hover { background-color: #219653; }
+
+        .workspace { margin-left: 350px; padding: 20px; flex-grow: 1; display: flex; justify-content: center; }
+        
+        .a4-sheet {
+            width: 210mm; height: 297mm; background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); padding: 15mm;
+            box-sizing: border-box; display: flex; flex-direction: column; position: relative;
+        }
+
+        .sheet-header { 
+            display: flex; justify-content: space-between; 
+            border-bottom: 2px solid var(--primary-color); 
+            padding-bottom: 10px; margin-bottom: 15px; font-size: 14px; line-height: 1.6;
+        }
+        .sheet-title { text-align: center; margin-bottom: 20px; font-size: 22px; font-weight: bold; color: #222; text-transform: uppercase;}
+
+        .writing-zone {
+            position: relative;
+            height: 48px; 
+            margin-bottom: 0; 
+            width: 100%;
+        }
+
+        .g-line { position: absolute; left: 0; right: 0; z-index: 1; }
+        .line-top { top: 0; border-top: 1px solid var(--line-solid); }
+        .line-mid { top: 24px; border-top: 1px dashed var(--line-dashed); } 
+
+        .cursive-output {
+            position: absolute;
+            left: 5px; right: 5px;
+            z-index: 10;
+            line-height: 48px; 
+            white-space: pre-wrap; 
+            color: #000000; 
+            margin: 0; padding: 0;
+            opacity: 0.6; 
+        }
+
+        /*--- Дискретен надпис за авторство в долния ляв ъгъл на листа ---*/
+        .copyright-sheet {
+            font-size: 10px;
+            color: #aaa;
+            position: absolute;
+            left: 15px;
+            bottom: 10px;
+        }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white; }
+            .sidebar { display: none !important; }
+            .workspace { margin: 0; padding: 0; }
+            .a4-sheet { box-shadow: none; margin: 0; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header-wrapper">
+            <div>
+                <h2>Печатни Букви</h2>
+                <div class="creator-tag">Автор: Дочка Кючукова</div>
+            </div>
+            <img src="logo.png" alt="Лого" class="sidebar-logo">
+        </div>
+        
+        <div class="control-group">
+            <label>Избор на шрифт:</label>
+            <select id="fontSelector" onchange="generateSheet()">
+                <option value="'Comfortaa', sans-serif" selected>Comfortaa (Кръгъл и модерен)</option>
+                <option value="'Balsamiq Sans', cursive">Balsamiq Sans (Супер мек и заоблен)</option>
+                <option value="'Pangolin', cursive">Pangolin (Мек химикал/маркер)</option>
+                <option value="'Comic Neue', cursive">Comic Neue (Мек печатен)</option>
+                <option value="'Comic Sans MS', 'Comic Sans', cursive">Comic Sans MS (Класически)</option>
+                <option value="'Neucha', cursive">Neucha (Полуръкописен/печат)</option>
+                <option value="'PrintDashed', sans-serif">PrintDashed (Английски пунктир)</option>
+                <option value="'Andika', sans-serif">Andika (Изчистен печатен)</option>
+                <option value="'Codystar', sans-serif">Codystar (На точки - дебел)</option>
+                <option value="'Raleway Dots', sans-serif">Raleway Dots (На точки - тънък)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Текст (Думи или Изречения):</label>
+            <textarea id="textInput" oninput="generateSheet()">Кога ще изгрее слънцето?
+Аз мога да чета.
+Мама мие бяла чиния.</textarea>
+        </div>
+
+        <div class="align-control">
+            <label>📏 Размер на буквите:</label>
+            <input type="range" min="20" max="80" value="40" id="size-slider" oninput="generateSheet()">
+            
+            <label>↕️ Позиция (нагоре/надолу):</label>
+            <input type="range" min="-50" max="50" value="-5" id="v-slider" oninput="updateStyles()">
+
+            <label>👁️ Видимост (за повтаряне):</label>
+            <input type="range" min="10" max="100" value="40" id="opacity-slider" title="Намалете за по-блед текст, за да могат учениците да пишат отгоре" oninput="updateStyles()">
+        </div>
+
+        <div class="control-group">
+            <label>Заглавие на листа:</label>
+            <input type="text" id="sheetTitle" value="УПРАЖНЕНИЕ" oninput="updateHeader()">
+        </div>
+
+        <button class="btn-print" onclick="window.print()">🖨️ Отпечатай листа</button>
+    </div>
+
+    <div class="workspace">
+        <div class="a4-sheet" id="printArea">
+            <div class="sheet-header">
+                <div>Име: ______________________________</div>
+                <div>Дата: ______________</div>
+            </div>
+
+            <h2 class="sheet-title" id="displayTitle">УПРАЖНЕНИЕ</h2>
+
+            <div id="writingLinesContainer"></div>
+            
+            <div class="copyright-sheet">създадено от Дочка Кючукова</div>
+        </div>
+    </div>
+
+    <script>
+        function updateHeader() {
+            document.getElementById('displayTitle').textContent = document.getElementById('sheetTitle').value;
+        }
+
+        function updateStyles() {
+            let vOffset = document.getElementById('v-slider').value;
+            let opacityVal = document.getElementById('opacity-slider').value / 100;
+            
+            document.querySelectorAll('.cursive-output').forEach(el => {
+                el.style.top = vOffset + 'px';
+                el.style.opacity = opacityVal;
+            });
+        }
+
+        function generateSheet() {
+            let rawText = document.getElementById('textInput').value;
+            let fontSize = document.getElementById('size-slider').value;
+            let fontFamily = document.getElementById('fontSelector').value;
+            let maxLineWidth = 670; 
+
+            let measureDiv = document.createElement('div');
+            measureDiv.style.position = 'absolute';
+            measureDiv.style.visibility = 'hidden';
+            measureDiv.style.whiteSpace = 'pre-wrap'; 
+            measureDiv.style.fontFamily = fontFamily;
+            measureDiv.style.fontSize = fontSize + 'px';
+            document.body.appendChild(measureDiv);
+
+            let paragraphs = rawText.split('\n');
+            let finalLines = [];
+
+            for(let p of paragraphs) {
+                if(p === '') { finalLines.push(''); continue; }
+                
+                let tokens = p.split(/(\s+)/); 
+                let currentLine = "";
+                
+                for(let token of tokens) {
+                    if(!token) continue;
+                    let testLine = currentLine + token;
+                    measureDiv.textContent = testLine;
+                    
+                    if(measureDiv.offsetWidth > maxLineWidth && currentLine !== "") {
+                        finalLines.push(currentLine);
+                        currentLine = token;
+                    } else { 
+                        currentLine = testLine; 
+                    }
+                }
+                if(currentLine !== "") finalLines.push(currentLine);
+            }
+            
+            document.body.removeChild(measureDiv);
+
+            let container = document.getElementById('writingLinesContainer');
+            let html = "";
+            let vOffset = document.getElementById('v-slider').value;
+            let opacityVal = document.getElementById('opacity-slider').value / 100;
+
+            for(let i = 0; i < 19; i++) { 
+                let currentLine = finalLines[i] || ""; 
+                
+                let bottomLineHtml = (i === 18) ? `<div class="g-line line-top" style="top: 48px;"></div>` : '';
+
+                html += `
+                    <div class="writing-zone">
+                        <div class="g-line line-top"></div>
+                        <div class="g-line line-mid"></div>
+                        ${bottomLineHtml}
+                        <div class="cursive-output" style="font-family: ${fontFamily}; font-size: ${fontSize}px; top: ${vOffset}px; opacity: ${opacityVal};">${currentLine}</div>
+                    </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        window.onload = function() {
+            setTimeout(generateSheet, 200); 
+        };
+    </script>
+</body>
+</html>
